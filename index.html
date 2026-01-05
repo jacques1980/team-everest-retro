@@ -1,143 +1,80 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Planning BI Schade Particulieren PI26.1</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             background-image: url('BI Particulieren Team.jpg');
             background-size: cover;
-            background-position: center 25%;  /* 🎯 verschuif foto iets naar beneden */
+            background-position: center 25%;
             background-repeat: no-repeat;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* mag blijven als je geen scroll wilt */
+            overflow: hidden;
         }
 
-        .container {
+        .header-box {
             text-align: center;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            margin: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
         }
+
         h1 {
-            font-size: 2em;
-            margin-bottom: 20px;
+            margin: 0;
+            font-size: 1.9em;
         }
-        .emoji-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .emoji {
-            font-size: 2em;
-            cursor: pointer;
-            margin: 0 10px;
-            transition: transform 0.2s;
-        }
-        .emoji:hover {
-            transform: scale(1.2);
-        }
-        .question {
-            font-size: 1.5em;
-            margin: 20px 0;
-        }
-        .button {
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
-            border: none;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .reset-button {
-            background-color: #DC3545;
-        }
-        .reset-button:hover {
-            background-color: #c82333;
-        }
-        .floating-emoji {
+
+        /* Vraagteken markers op personen */
+        .person-marker {
             position: absolute;
-            font-size: 2em;
-            animation: float 5s infinite;
+            font-size: 2.6em;
+            cursor: pointer;
+            color: yellow;
+            text-shadow: 2px 2px 6px #000;
+            user-select: none;
+            transition: transform 0.2s ease;
         }
-        @keyframes float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0); }
+
+        .person-marker:hover {
+            transform: scale(1.25);
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Retrospective Team Everest PI25.2.3</h1>
-        <div class="emoji-container">
-            <div class="emoji" onclick="addEmoji('😊')">😊</div>
-            <div class="emoji" onclick="addEmoji('😐')">😐</div>
-            <div class="emoji" onclick="addEmoji('😞')">😞</div>
-            <div class="emoji" onclick="addEmoji('😡')">😡</div>
-            <div class="emoji" onclick="addEmoji('🎉')">🎉</div>
-        </div>
-        <button class="button" onclick="drawQuestion()">Trek een vraag</button>
-        <button class="button reset-button" onclick="resetEmojis()">Reset</button>
-        <div class="question" id="question"></div>
+
+    <div class="header-box">
+        <h1>Team Everest – Persoonlijke vragen</h1>
+        <p>Klik op een ❓ boven een persoon om een vraag te stellen.</p>
     </div>
+
+    <!-- ❓ Markers op personen -->
+    <div class="person-marker" style="top: 62%; left: 8%;" onclick="askPerson(1)">❓</div>
+    <div class="person-marker" style="top: 55%; left: 20%;" onclick="askPerson(2)">❓</div>
+    <div class="person-marker" style="top: 48%; left: 27%;" onclick="askPerson(3)">❓</div>
+    <div class="person-marker" style="top: 60%; left: 40%;" onclick="askPerson(4)">❓</div>
+    <div class="person-marker" style="top: 50%; left: 52%;" onclick="askPerson(5)">❓</div>
+    <div class="person-marker" style="top: 53%; left: 65%;" onclick="askPerson(6)">❓</div>
+    <div class="person-marker" style="top: 60%; left: 78%;" onclick="askPerson(7)">❓</div>
+    <div class="person-marker" style="top: 45%; left: 88%;" onclick="askPerson(8)">❓</div>
+
     <script>
-        const questions = [
-            "Wat was jouw grootste 'Aha!' moment deze sprint?",
-            "Wat ging er deze sprint net iets trager dan je had gewild?",
-            "Wat gaf jou energie deze sprint?",
-            "Wat was jouw sprint-brandje en hoe heb je het geblust?",
-            "Als je deze sprint moest omschrijven als een filmgenre, wat zou het zijn en waarom?",
-            "Welke 'magische kracht' had je willen hebben deze sprint?",
-            "Wat was jouw 'vitamine shot' deze sprint – iets dat je echt hielp?",
-            "Wat was jouw grootste uitdaging deze sprint?",
-            "Wat was het meest bevredigende moment deze sprint?",
-            "Wat zou je anders willen doen in de volgende sprint?",
-            "Wat was het leukste moment deze sprint?",
-            "Wat was het meest frustrerende moment deze sprint?",
-            "Wat heb je geleerd deze sprint?",
-            "Wat zou je willen verbeteren in het teamproces?",
-            "Wat was de grootste verrassing deze sprint?",
-            "Wat was de grootste tegenslag deze sprint?",
-            "Wat was het meest inspirerende moment deze sprint?",
-            "Wat zou je willen vieren van deze sprint?",
-            "Wat was het meest tijdrovende deze sprint?",
-            "Wat was het meest efficiënte deze sprint?",
-            "Wat zou je willen automatiseren in de volgende sprint?",
-            "Wat was het meest creatieve idee deze sprint?",
-            "Wat was het meest risicovolle deze sprint?",
-            "Wat zou je willen experimenteren in de volgende sprint?",
-            "Wat was het meest waardevolle feedback deze sprint?"
-        ];
-
-        function drawQuestion() {
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            document.getElementById('question').innerText = questions[randomIndex];
-        }
-
-        function addEmoji(emoji) {
-            const emojiElement = document.createElement('div');
-            emojiElement.classList.add('floating-emoji');
-            emojiElement.innerText = emoji;
-            emojiElement.style.left = Math.random() * 100 + 'vw';
-            emojiElement.style.top = Math.random() * 100 + 'vh';
-            document.body.appendChild(emojiElement);
-        }
-
-        function resetEmojis() {
-            const emojis = document.querySelectorAll('.floating-emoji');
-            emojis.forEach(emoji => emoji.remove());
+        function askPerson(id) {
+            const vraag = prompt("Welke vraag wil je stellen aan persoon " + id + "?");
+            if (vraag) {
+                alert("Vraag aan persoon " + id + ":\n\n" + vraag);
+            }
         }
     </script>
+
 </body>
 </html>
