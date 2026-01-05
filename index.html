@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PI Planning BI Schade Particulieren PI26.1</title>
 
   <style>
@@ -18,19 +18,25 @@
       overflow: hidden;
     }
 
+    /* ---------------- HEADER ONDERAAN ---------------- */
     .header-box {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       text-align: center;
       padding: 20px;
       background: rgba(255, 255, 255, 0.85);
       border-radius: 12px;
-      margin: 20px auto;
       width: 90%;
       max-width: 800px;
+      z-index: 999;
     }
 
     h1 {
       margin: 0 0 6px 0;
-      font-size: 1.9em;
+      font-size: 1.8em;
+      color: #111;
     }
 
     .controls {
@@ -38,9 +44,8 @@
       gap: 8px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-top: 8px;
+      margin-top: 6px;
     }
-
     .button {
       padding: 8px 14px;
       font-size: 0.95em;
@@ -51,37 +56,70 @@
       border-radius: 8px;
       transition: background-color 0.15s ease, transform 0.05s ease;
     }
-    .button:hover { background-color: #e5e7eb; transform: translateY(-1px) }
+    .button:hover { background-color: #e5e7eb; transform: translateY(-1px); }
+    .button.primary { background: #dbeafe; border-color: #93c5fd; }
+    .button.primary:hover { background: #bfdbfe; }
+    .button.reset { background-color: #fee2e2; border-color: #fca5a5; }
+    .button.reset:hover { background-color: #fecaca; }
 
-    .button.reset { background-color: #fee2e2; border-color: #fca5a5 }
-    .button.reset:hover { background-color: #fecaca }
+    .hint { margin-top: 6px; color: #374151; font-size: 0.9em; }
 
     .done-list {
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: 0.95em;
-      color: #111;
+      color: #222;
     }
-    .done-list strong { font-weight: 700 }
 
-    /* Vraagteken markers op personen */
+    /* ---------------- MARKERS OP PERSONEN ---------------- */
     .person-marker {
       position: absolute;
       font-size: 2.6em;
       cursor: pointer;
-      color: yellow;
-      text-shadow: 2px 2px 6px #000;
+      color: #ffec66; /* warm geel voor zichtbaarheid */
       user-select: none;
       transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+      /* Glow animatie voor niet-afgevinkte personen */
+      animation: glowPending 1.6s ease-in-out infinite;
     }
-    .person-marker:hover { transform: scale(1.25) }
+    .person-marker:hover { transform: scale(1.25); }
 
-    /* Als een persoon al is geweest, markeer groen + check */
+    /* Glow voor ❓ (pending) */
+    @keyframes glowPending {
+      0%, 100% {
+        text-shadow:
+          0 0 6px rgba(255, 255, 0, 0.75),
+          0 0 18px rgba(255, 255, 0, 0.6),
+          0 0 28px rgba(255, 200, 0, 0.4);
+      }
+      50% {
+        text-shadow:
+          0 0 12px rgba(255, 255, 0, 1),
+          0 0 26px rgba(255, 255, 0, 0.9),
+          0 0 36px rgba(255, 210, 0, 0.7);
+      }
+    }
+
+    /* Als iemand al is geweest → groene check + groene glow */
     .person-marker.done {
-      color: #22c55e; /* green */
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+      color: #22c55e;
+      animation: glowDone 1.6s ease-in-out infinite;
+    }
+    @keyframes glowDone {
+      0%, 100% {
+        text-shadow:
+          0 0 6px rgba(34, 197, 94, 0.75),
+          0 0 18px rgba(34, 197, 94, 0.6),
+          0 0 28px rgba(34, 197, 94, 0.4);
+      }
+      50% {
+        text-shadow:
+          0 0 12px rgba(34, 197, 94, 1),
+          0 0 26px rgba(34, 197, 94, 0.9),
+          0 0 36px rgba(34, 197, 94, 0.7);
+      }
     }
 
-    /* Eenvoudige modal */
+    /* ---------------- MODAL ---------------- */
     .overlay {
       position: fixed;
       inset: 0;
@@ -99,35 +137,33 @@
       border-radius: 12px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.35);
       padding: 18px;
-      overflow: hidden;
     }
-    .modal h2 { margin: 0 0 8px 0; font-size: 1.35em }
-    .modal p  { margin: 0 0 16px 0; font-size: 1.05em }
-    .modal .row { display: flex; justify-content: flex-end; gap: 8px }
-    .modal .row .button.primary {
-      background: #dbeafe; border-color: #93c5fd;
-    }
-    .modal .row .button.primary:hover {
-      background: #bfdbfe;
-    }
+    .modal h2 { margin: 0 0 8px 0; font-size: 1.35em; }
+    .modal p  { margin: 0 0 16px 0; font-size: 1.1em; }
+    .modal .row { display: flex; justify-content: flex-end; gap: 8px; }
+    .modal .button.primary { background: #dbeafe; border-color: #93c5fd; }
+    .modal .button.primary:hover { background: #bfdbfe; }
   </style>
 </head>
 
 <body>
 
+  <!-- ---------------- HEADER ONDERAAN ---------------- -->
   <div class="header-box">
     <h1>PI Planning BI Schade Particulieren PI26.1</h1>
-    <p>Klik op een ❓ boven een persoon om de vraag te tonen. Markeer wie al is geweest en reset wanneer nodig.</p>
+    <p>Klik op een ❓ boven een persoon, of kies willekeurig.</p>
     <div class="controls">
-      <button class="button reset" onclick="resetProgress()">Reset verloop (alleen checkmarks)</button>
-      <button class="button" onclick="resetAll()">Alles opnieuw</button>
+      <button class="button primary" onclick="randomPick()">Kies willekeurig (R)</button>
+      <button class="button reset" onclick="resetProgress()">Reset verloop (checkmarks)</button>
+      <button class="button" onclick="resetAll()">Helemaal opnieuw</button>
     </div>
+    <div class="hint">Sneltoets: druk op <strong>R</strong> voor willekeurige naam.</div>
     <div class="done-list">
       <strong>Al geweest:</strong> <span id="doneList">—</span>
     </div>
   </div>
 
-  <!-- ❓ Markers op personen (met id en onclick) -->
+  <!-- ---------------- PERSON MARKERS ---------------- -->
   <div class="person-marker" id="marker-Evert"     style="top: 12%; left: 6%;"  onclick="askPerson('Evert')">❓</div>
   <div class="person-marker" id="marker-Stef"      style="top: 4%;  left: 5%;"  onclick="askPerson('Stef')">❓</div>
   <div class="person-marker" id="marker-Esther"    style="top: 6%;  left: 13%;" onclick="askPerson('Esther')">❓</div>
@@ -143,8 +179,8 @@
   <div class="person-marker" id="marker-Jeroen"    style="top: 31%; left: 74%;" onclick="askPerson('Jeroen')">❓</div>
   <div class="person-marker" id="marker-Simone"    style="top: 32%; left: 79%;" onclick="askPerson('Simone')">❓</div>
 
+  <!-- ---------------- SCRIPT ---------------- -->
   <script>
-    // ---- Config: vaste vraag per persoon ----
     const PERSON_QUESTIONS = {
       "Evert":     "Welke afhankelijkheid zie jij deze PI voor Team Everest?",
       "Stef":      "Wat is volgens jou het belangrijkste risico en hoe mitigeren we dat?",
@@ -162,121 +198,120 @@
       "Simone":    "Wie wil je bedanken en waarom, en wat hebben we daarvan geleerd?"
     };
 
-    // ---- State opslag ----
-    const LS_KEY_DONE = "pi26:personen:done"; // array van namen die al zijn geweest
+    const ALL_NAMES = Object.keys(PERSON_QUESTIONS);
+    const LS_KEY_DONE = "pi26:personen:done";
+
     function loadDone() {
-      try {
-        const raw = localStorage.getItem(LS_KEY_DONE);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
+      try { return JSON.parse(localStorage.getItem(LS_KEY_DONE)) || []; }
+      catch { return []; }
     }
     function saveDone(arr) { localStorage.setItem(LS_KEY_DONE, JSON.stringify(arr)); }
 
     let done = loadDone();
 
-    // ---- Helpers voor UI ----
     function setMarkerDone(name, isDone) {
       const el = document.getElementById("marker-" + name);
       if (!el) return;
-      if (isDone) {
-        el.classList.add("done");
-        el.textContent = "✅";
-      } else {
-        el.classList.remove("done");
-        el.textContent = "❓";
-      }
-    }
-
-    function renderAllMarkersFromState() {
-      Object.keys(PERSON_QUESTIONS).forEach(name => {
-        setMarkerDone(name, done.includes(name));
-      });
-      renderDoneList();
+      el.classList.toggle("done", isDone);
+      el.textContent = isDone ? "✅" : "❓";
     }
 
     function renderDoneList() {
-      const target = document.getElementById("doneList");
-      target.textContent = done.length ? done.join(", ") : "—";
+      document.getElementById("doneList").textContent = done.length ? done.join(", ") : "—";
     }
 
-    // ---- Modal ----
-    function showModal(title, message, onMarkDone) {
-      const overlay = document.createElement('div');
-      overlay.className = 'overlay';
+    function renderAll() {
+      ALL_NAMES.forEach(name => setMarkerDone(name, done.includes(name)));
+      renderDoneList();
+    }
 
-      const modal = document.createElement('div');
-      modal.className = 'modal';
+    function showModal(title, message, onConfirm) {
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
 
-      const h2 = document.createElement('h2');
-      h2.textContent = title;
+      const modal = document.createElement("div");
+      modal.className = "modal";
 
-      const p = document.createElement('p');
-      p.textContent = message;
+      modal.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <div class="row">
+          <button class="button">Sluiten</button>
+          <button class="button primary">Markeer als geweest ✅</button>
+        </div>
+      `;
 
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'button';
-      closeBtn.textContent = 'Sluiten';
-
-      const markBtn = document.createElement('button');
-      markBtn.className = 'button primary';
-      markBtn.textContent = 'Markeer als geweest ✅';
-
-      closeBtn.onclick = () => document.body.removeChild(overlay);
-      markBtn.onclick = () => {
-        onMarkDone?.();
+      modal.querySelector(".button").onclick = () => document.body.removeChild(overlay);
+      modal.querySelector(".button.primary").onclick = () => {
+        onConfirm?.();
         document.body.removeChild(overlay);
       };
 
-      row.appendChild(closeBtn);
-      row.appendChild(markBtn);
-      modal.appendChild(h2);
-      modal.appendChild(p);
-      modal.appendChild(row);
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
     }
 
-    // ---- Publieke API ----
     function askPerson(name) {
+      // Als iemand al geweest is, toon toch de vraag maar markeer niet dubbel
       const vraag = PERSON_QUESTIONS[name];
-      if (!vraag) {
-        showModal('Onbekende persoon', `Er is (nog) geen vaste vraag ingesteld voor: ${name}.`);
-        return;
-      }
-      showModal(`Vraag voor ${name}`, vraag, () => {
+      showModal("Vraag voor " + name, vraag, () => {
         if (!done.includes(name)) {
           done.push(name);
           saveDone(done);
-          setMarkerDone(name, true);
-          renderDoneList();
+          renderAll();
         }
       });
+    }
+
+    function randomPick() {
+      const remaining = ALL_NAMES.filter(n => !done.includes(n));
+      if (!remaining.length) {
+        // Iedereen is geweest → bied reset aan
+        showModal("Iedereen is geweest 🎉", "Je kunt resetten voor een nieuwe ronde.", () => {
+          // optioneel: bij bevestiging meteen resetProgress uitvoeren
+          resetProgress();
+        });
+        return;
+      }
+      // Kies willekeurig uit de overgebleven namen
+      const name = remaining[Math.floor(Math.random() * remaining.length)];
+      // Highlight de marker kort (visueel feedback)
+      const el = document.getElementById("marker-" + name);
+      if (el) {
+        el.style.transform = "scale(1.35)";
+        setTimeout(() => { el.style.transform = ""; }, 450);
+      }
+      askPerson(name);
     }
 
     function resetProgress() {
       done = [];
       saveDone(done);
-      renderAllMarkersFromState();
+      renderAll();
     }
 
     function resetAll() {
-      // Zelfde als resetProgress; als er later meer state komt, reset die ook hier
       done = [];
       saveDone(done);
-      renderAllMarkersFromState();
+      renderAll();
     }
 
-    // ---- Init bij load ----
+    // Sneltoets: R voor random pick
+    document.addEventListener("keydown", (e) => {
+      if (e.key && e.key.toLowerCase() === "r") {
+        randomPick();
+      }
+    });
+
+    // Expose functies voor onclick
     window.askPerson = askPerson;
+    window.randomPick = randomPick;
     window.resetProgress = resetProgress;
     window.resetAll = resetAll;
 
-    renderAllMarkersFromState();
+    // Init
+    renderAll();
   </script>
 
 </body>
 </html>
-
