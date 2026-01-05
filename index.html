@@ -2,86 +2,281 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PI Planning BI Schade Particulieren PI26.1</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PI Planning BI Schade Particulieren PI26.1</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-image: url('BI Particulieren Team.jpg');
-            background-size: cover;
-            background-position: center 25%;
-            background-repeat: no-repeat;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('BI Particulieren Team.jpg');
+      background-size: cover;
+      background-position: center 25%;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
 
-        .header-box {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 12px;
-            margin: 20px auto;
-            width: 80%;
-            max-width: 600px;
-        }
+    .header-box {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 12px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 800px;
+    }
 
-        h1 {
-            margin: 0;
-            font-size: 1.9em;
-        }
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 1.9em;
+    }
 
-        /* Vraagteken markers op personen */
-        .person-marker {
-            position: absolute;
-            font-size: 2.6em;
-            cursor: pointer;
-            color: yellow;
-            text-shadow: 2px 2px 6px #000;
-            user-select: none;
-            transition: transform 0.2s ease;
-        }
+    .controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
 
-        .person-marker:hover {
-            transform: scale(1.25);
-        }
-    </style>
+    .button {
+      padding: 8px 14px;
+      font-size: 0.95em;
+      cursor: pointer;
+      border: 1px solid #d1d5db;
+      background-color: #f3f4f6;
+      color: #111;
+      border-radius: 8px;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+    .button:hover { background-color: #e5e7eb; transform: translateY(-1px) }
+
+    .button.reset { background-color: #fee2e2; border-color: #fca5a5 }
+    .button.reset:hover { background-color: #fecaca }
+
+    .done-list {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #111;
+    }
+    .done-list strong { font-weight: 700 }
+
+    /* Vraagteken markers op personen */
+    .person-marker {
+      position: absolute;
+      font-size: 2.6em;
+      cursor: pointer;
+      color: yellow;
+      text-shadow: 2px 2px 6px #000;
+      user-select: none;
+      transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+    }
+    .person-marker:hover { transform: scale(1.25) }
+
+    /* Als een persoon al is geweest, markeer groen + check */
+    .person-marker.done {
+      color: #22c55e; /* green */
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+
+    /* Eenvoudige modal */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(2px);
+      z-index: 9999;
+      display: grid;
+      place-items: start center;
+      padding-top: 8vh;
+    }
+    .modal {
+      width: min(92vw, 680px);
+      background: #fff;
+      color: #111;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      padding: 18px;
+      overflow: hidden;
+    }
+    .modal h2 { margin: 0 0 8px 0; font-size: 1.35em }
+    .modal p  { margin: 0 0 16px 0; font-size: 1.05em }
+    .modal .row { display: flex; justify-content: flex-end; gap: 8px }
+    .modal .row .button.primary {
+      background: #dbeafe; border-color: #93c5fd;
+    }
+    .modal .row .button.primary:hover {
+      background: #bfdbfe;
+    }
+  </style>
 </head>
 
 <body>
 
-    <div class="header-box">
-        <h1>PI Planning BI Schade Particulieren PI26.1</h1>
-        <p>Klik op een ❓ boven een persoon voor de vraag.</p>
+  <div class="header-box">
+    <h1>PI Planning BI Schade Particulieren PI26.1</h1>
+    <p>Klik op een ❓ boven een persoon om de vraag te tonen. Markeer wie al is geweest en reset wanneer nodig.</p>
+    <div class="controls">
+      <button class="button reset" onclick="resetProgress()">Reset verloop (alleen checkmarks)</button>
+      <button class="button" onclick="resetAll()">Alles opnieuw</button>
     </div>
+    <div class="done-list">
+      <strong>Al geweest:</strong> <span id="doneList">—</span>
+    </div>
+  </div>
 
-    <!-- ❓ Markers op personen -->
-    <div class="person-marker" style="top: 12%; left: 6%;" onclick="askPerson(Evert)">❓</div>
-    <div class="person-marker" style="top: 4%; left: 5%;" onclick="askPerson(Stef)">❓</div>
-    <div class="person-marker" style="top: 6%; left: 13%;" onclick="askPerson(Esther)">❓</div>
-    <div class="person-marker" style="top: 3%; left: 19%;" onclick="askPerson(Ronald)">❓</div>
-    <div class="person-marker" style="top: 43%; left: 16%;" onclick="askPerson(Annemieke)">❓</div>
-    <div class="person-marker" style="top: 20%; left: 26%;" onclick="askPerson(Bram)">❓</div>
-    <div class="person-marker" style="top: 31%; left: 35%;" onclick="askPerson(Gerwin)">❓</div>
-    <div class="person-marker" style="top: 31%; left: 43%;" onclick="askPerson(Gerrit)">❓</div>
-    <div class="person-marker" style="top: 31%; left: 51%;" onclick="askPerson(John)">❓</div>
-    <div class="person-marker" style="top: 20%; left: 56%;" onclick="askPerson(Jacques)">❓</div>
-    <div class="person-marker" style="top: 9%; left: 64%;" onclick="askPerson(Ward)">❓</div>
-    <div class="person-marker" style="top: 8%; left: 72%;" onclick="askPerson(EJ)">❓</div>
-    <div class="person-marker" style="top: 31%; left: 74%;" onclick="askPerson(Jeroen)">❓</div>
-    <div class="person-marker" style="top: 32%; left: 79%;" onclick="askPerson(Simone)">❓</div>
-    
+  <!-- ❓ Markers op personen (met id en onclick) -->
+  <div class="person-marker" id="marker-Evert"     style="top: 12%; left: 6%;"  onclick="askPerson('Evert')">❓</div>
+  <div class="person-marker" id="marker-Stef"      style="top: 4%;  left: 5%;"  onclick="askPerson('Stef')">❓</div>
+  <div class="person-marker" id="marker-Esther"    style="top: 6%;  left: 13%;" onclick="askPerson('Esther')">❓</div>
+  <div class="person-marker" id="marker-Ronald"    style="top: 3%;  left: 19%;" onclick="askPerson('Ronald')">❓</div>
+  <div class="person-marker" id="marker-Annemieke" style="top: 43%; left: 16%;" onclick="askPerson('Annemieke')">❓</div>
+  <div class="person-marker" id="marker-Bram"      style="top: 20%; left: 26%;" onclick="askPerson('Bram')">❓</div>
+  <div class="person-marker" id="marker-Gerwin"    style="top: 31%; left: 35%;" onclick="askPerson('Gerwin')">❓</div>
+  <div class="person-marker" id="marker-Gerrit"    style="top: 31%; left: 43%;" onclick="askPerson('Gerrit')">❓</div>
+  <div class="person-marker" id="marker-John"      style="top: 31%; left: 51%;" onclick="askPerson('John')">❓</div>
+  <div class="person-marker" id="marker-Jacques"   style="top: 20%; left: 56%;" onclick="askPerson('Jacques')">❓</div>
+  <div class="person-marker" id="marker-Ward"      style="top: 9%;  left: 64%;" onclick="askPerson('Ward')">❓</div>
+  <div class="person-marker" id="marker-EJ"        style="top: 8%;  left: 72%;" onclick="askPerson('EJ')">❓</div>
+  <div class="person-marker" id="marker-Jeroen"    style="top: 31%; left: 74%;" onclick="askPerson('Jeroen')">❓</div>
+  <div class="person-marker" id="marker-Simone"    style="top: 32%; left: 79%;" onclick="askPerson('Simone')">❓</div>
 
-    <script>
-        function askPerson(id) {
-            const vraag = prompt("Welke vraag wil je stellen aan persoon " + id + "?");
-            if (vraag) {
-                alert("Vraag aan persoon " + id + ":\n\n" + vraag);
-            }
+  <script>
+    // ---- Config: vaste vraag per persoon ----
+    const PERSON_QUESTIONS = {
+      "Evert":     "Welke afhankelijkheid zie jij deze PI voor Team Everest?",
+      "Stef":      "Wat is volgens jou het belangrijkste risico en hoe mitigeren we dat?",
+      "Esther":    "Welke verbetering wil je als RTE deze PI stimuleren?",
+      "Ronald":    "Wat wordt jouw grootste bijdrage in deze PI en welke support heb je nodig?",
+      "Annemieke": "Welke metric vind jij het meest waardevol om te volgen en waarom?",
+      "Bram":      "Waar zie je de meeste waste en hoe kunnen we die verminderen?",
+      "Gerwin":    "Wat is de grootste onbekende voor jouw domein en hoe pakken we die aan?",
+      "Gerrit":    "Welke afhankelijkheid heb je en van wie is die?",
+      "John":      "Wat wil je deze PI leren of verbeteren op technisch vlak?",
+      "Jacques":   "Wat is onze energizer/doel voor vandaag en hoe houden we de vaart erin?",
+      "Ward":      "Wat kunnen we verbeteren aan onze demo’s voor meer impact?",
+      "EJ":        "Welke quick win zie jij die we deze week kunnen oppakken?",
+      "Jeroen":    "Welke alignment is nodig met andere ARTs/teams voor succes?",
+      "Simone":    "Wie wil je bedanken en waarom, en wat hebben we daarvan geleerd?"
+    };
+
+    // ---- State opslag ----
+    const LS_KEY_DONE = "pi26:personen:done"; // array van namen die al zijn geweest
+    function loadDone() {
+      try {
+        const raw = localStorage.getItem(LS_KEY_DONE);
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    }
+    function saveDone(arr) { localStorage.setItem(LS_KEY_DONE, JSON.stringify(arr)); }
+
+    let done = loadDone();
+
+    // ---- Helpers voor UI ----
+    function setMarkerDone(name, isDone) {
+      const el = document.getElementById("marker-" + name);
+      if (!el) return;
+      if (isDone) {
+        el.classList.add("done");
+        el.textContent = "✅";
+      } else {
+        el.classList.remove("done");
+        el.textContent = "❓";
+      }
+    }
+
+    function renderAllMarkersFromState() {
+      Object.keys(PERSON_QUESTIONS).forEach(name => {
+        setMarkerDone(name, done.includes(name));
+      });
+      renderDoneList();
+    }
+
+    function renderDoneList() {
+      const target = document.getElementById("doneList");
+      target.textContent = done.length ? done.join(", ") : "—";
+    }
+
+    // ---- Modal ----
+    function showModal(title, message, onMarkDone) {
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+
+      const h2 = document.createElement('h2');
+      h2.textContent = title;
+
+      const p = document.createElement('p');
+      p.textContent = message;
+
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'button';
+      closeBtn.textContent = 'Sluiten';
+
+      const markBtn = document.createElement('button');
+      markBtn.className = 'button primary';
+      markBtn.textContent = 'Markeer als geweest ✅';
+
+      closeBtn.onclick = () => document.body.removeChild(overlay);
+      markBtn.onclick = () => {
+        onMarkDone?.();
+        document.body.removeChild(overlay);
+      };
+
+      row.appendChild(closeBtn);
+      row.appendChild(markBtn);
+      modal.appendChild(h2);
+      modal.appendChild(p);
+      modal.appendChild(row);
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+    }
+
+    // ---- Publieke API ----
+    function askPerson(name) {
+      const vraag = PERSON_QUESTIONS[name];
+      if (!vraag) {
+        showModal('Onbekende persoon', `Er is (nog) geen vaste vraag ingesteld voor: ${name}.`);
+        return;
+      }
+      showModal(`Vraag voor ${name}`, vraag, () => {
+        if (!done.includes(name)) {
+          done.push(name);
+          saveDone(done);
+          setMarkerDone(name, true);
+          renderDoneList();
         }
-    </script>
+      });
+    }
+
+    function resetProgress() {
+      done = [];
+      saveDone(done);
+      renderAllMarkersFromState();
+    }
+
+    function resetAll() {
+      // Zelfde als resetProgress; als er later meer state komt, reset die ook hier
+      done = [];
+      saveDone(done);
+      renderAllMarkersFromState();
+    }
+
+    // ---- Init bij load ----
+    window.askPerson = askPerson;
+    window.resetProgress = resetProgress;
+    window.resetAll = resetAll;
+
+    renderAllMarkersFromState();
+  </script>
 
 </body>
 </html>
+
