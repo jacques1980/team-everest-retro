@@ -254,7 +254,7 @@
     function askPerson(name) {
       // Als iemand al geweest is, toon toch de vraag maar markeer niet dubbel
       const vraag = PERSON_QUESTIONS[name];
-      showModal("Vraag voor " + name, vraag, () => {
+      showModal("Vraag over " + name, vraag, () => {
         if (!done.includes(name)) {
           done.push(name);
           saveDone(done);
